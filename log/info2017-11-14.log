@@ -1,0 +1,6 @@
+[INFO][2017-11-14 19:08:26,970][Test.scala][8] hello
+[INFO][2017-11-14 19:50:24,356][Test.scala][8] hello
+[INFO][2017-11-14 19:51:30,823][Test.scala][8] hello
+[INFO][2017-11-14 19:52:42,800][Test.scala][8] hello
+[INFO][2017-11-14 19:53:42,043][DmmLogger.scala][15] hello
+[INFO][2017-11-14 19:58:26,273][Test.scala][8] hello

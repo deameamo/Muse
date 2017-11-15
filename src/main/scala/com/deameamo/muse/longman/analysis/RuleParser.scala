@@ -25,9 +25,7 @@ object RuleParser {
         val list = new mutable.MutableList[Rule]
         compoundRules.foreach(compoundRule => list ++= compoundRule.rules)
         list
-      case parser.NoSuccess(msg, _) =>
-        info(s"parsing failed: msg=$msg")
-        new mutable.MutableList[Rule]
+      case parser.NoSuccess(msg, _) => new mutable.MutableList[Rule]
     }
   }
 

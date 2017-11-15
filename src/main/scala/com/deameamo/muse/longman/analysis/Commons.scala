@@ -1,5 +1,7 @@
 package com.deameamo.muse.longman.analysis
 
+import com.deameamo.commons.util.FileUtil
+
 import scala.collection.mutable
 import scala.io.Source
 
@@ -75,9 +77,7 @@ object Letter {
   val VOWEL_Y = Seq('a', 'e', 'i', 'o', 'u', 'y')
 
   private val letterMap = new mutable.HashMap[Char, Char]
-  private val source = Source.fromFile(Resource.PATH_LETTER_MAP)
-  private val list = source.getLines()
-  source.close()
+  private val list = FileUtil.readFile(Resource.PATH_LETTER_MAP)
   list.foreach(line => {
     letterMap.put(line.charAt(0), line.charAt(2))
     letterMap.put(line.charAt(0).toUpper, line.charAt(2).toUpper)

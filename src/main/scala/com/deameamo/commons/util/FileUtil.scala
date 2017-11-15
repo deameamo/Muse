@@ -21,7 +21,7 @@ object FileUtil {
   val DELETE_OLD_FILE = 0
 
   def logErr(filePath: String, msg: String) {
-    val err = getWriter(filePath, appending = true)
+    val err = getWriter(filePath)
     err.println(msg)
     closeWriter(err)
   }

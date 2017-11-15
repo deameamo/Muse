@@ -6,23 +6,19 @@ import scala.collection.mutable
 
 object RuleEngine {
 
-  val EQUI_RULES = "longman/analysis/ruleEngine/equiRules"
-  val INSERTION_RULES = "longman/analysis/ruleEngine/insertionRules"
-  val GENERAL_RULES = "longman/analysis/ruleEngine/generalRules"
-
   val equiRules = new mutable.MutableList[EquiRule]
   val generalRules = new mutable.MutableList[GeneralRule]
   val insertionRules = new mutable.MutableList[InsertionRule]
 
-  FileUtil.readFile(EQUI_RULES).foreach(desc => {
+  FileUtil.readFile(Resource.EQUI_RULES).foreach(desc => {
     if (!desc.startsWith("//"))
       equiRules += new EquiRule(desc)
   })
-  FileUtil.readFile(GENERAL_RULES).foreach(desc => {
+  FileUtil.readFile(Resource.GENERAL_RULES).foreach(desc => {
     if (!desc.startsWith("//"))
       generalRules += new GeneralRule(desc)
   })
-  FileUtil.readFile(INSERTION_RULES).foreach(desc => {
+  FileUtil.readFile(Resource.INSERTION_RULES).foreach(desc => {
     if (!desc.startsWith("//"))
       insertionRules += new InsertionRule(desc)
   })

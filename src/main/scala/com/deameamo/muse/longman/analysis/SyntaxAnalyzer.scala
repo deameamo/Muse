@@ -1,5 +1,6 @@
 package com.deameamo.muse.longman.analysis
 
+import com.deameamo.commons.log.DmmLogger.logger._
 import com.deameamo.commons.util.Matrix
 
 import scala.collection.mutable
@@ -30,15 +31,15 @@ object SyntaxAnalyzer {
     //    sentence = "I am warned of the danger"
     //    sentence = "a book is given to me"
     //    sentence = "make friends with different people from different country of different age of different color with different hobbies of different background"
-    sentence = "off the switch I"
-    println(s"begin analysis: $sentence")
+    sentence = "I love you"
+    info(s"begin analysis: $sentence")
     val t0 = System.currentTimeMillis
     analyze(sentence)
-    println(s"done in ${System.currentTimeMillis - t0}ms")
+    info(s"done in ${System.currentTimeMillis - t0}ms")
   }
 
   Dictionary.load()
-  println("dictionary loaded")
+  info("dictionary loaded")
   //  Thread.sleep(3000)
 
   def analyze(sentence: String) {
@@ -51,7 +52,7 @@ object SyntaxAnalyzer {
     for (i <- lexicals.indices) {
       matrix.set(i, i, lexicals.apply(i).generateCell(bagOfHwds))
     }
-    println(s"upgraders:")
+    info(s"upgraders:")
     PhraseFactory.upgraders.foreach(println(_))
     for (i <- lexicals.indices) {
       PhraseFactory.addUpgraders(matrix.get(i)(i))
@@ -65,15 +66,15 @@ object SyntaxAnalyzer {
         for (j <- 0 until col - row) {
           val preCell = matrix.get(row)(row + j)
           val postCell = matrix.get(row + j + 1)(col)
-          println(s"========================================================================================")
-          println(s"analyzing cell matrix[$row][$col]: pre=matrix[$row][${row + j}], post=matrix[${row + j + 1}][$col]")
+          info(s"========================================================================================")
+          info(s"analyzing cell matrix[$row][$col]: pre=matrix[$row][${row + j}], post=matrix[${row + j + 1}][$col]")
           if (row == 0 && col == 3 && j == 0)
             Debugger.off()
           else
             Debugger.off()
           Debugger.debug(x => {
-            println(s"========================================================================================")
-            println(s"analyzing cell matrix[$row][$col]: pre=matrix[$row][${row + j}], post=matrix[${row + j + 1}][$col]")
+            info(s"========================================================================================")
+            info(s"analyzing cell matrix[$row][$col]: pre=matrix[$row][${row + j}], post=matrix[${row + j + 1}][$col]")
           })
           preCell.phrases.foreach(a => {
             postCell.phrases.foreach(b => {
@@ -125,21 +126,21 @@ object SyntaxAnalyzer {
     //      phraseId += 1
     //    })
 
-    println(s"\nresult for cell(${0},${lexicals.size - 1}): Phrase.count=${Phrase.count}")
+    info(s"\nresult for cell(${0},${lexicals.size - 1}): Phrase.count=${Phrase.count}")
     var groupId = 1
     var phraseId = 1
     matrix.get(0)(lexicals.size - 1).organize.foreach(group => {
-      println(s"group $groupId:")
+      info(s"group $groupId:")
       phraseId = 1
       group.foreach(phrase => {
         if (phrase.coreHead != null) {
-          println(s"$phraseId: quality=${phrase.coreHead.quality}")
-          println(s"phrase ${phrase.id}: rule= ${phrase.rule}")
+          info(s"$phraseId: quality=${phrase.coreHead.quality}")
+          info(s"phrase ${phrase.id}: rule= ${phrase.rule}")
           phrase.coreHead.print()
         }
         else {
-          println(s"$phraseId: unfinished")
-          println(phrase)
+          info(s"$phraseId: unfinished")
+          info(phrase)
           if (phrase.initHead != null)
             phrase.initHead.print()
         }

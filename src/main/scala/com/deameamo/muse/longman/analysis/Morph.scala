@@ -9,17 +9,17 @@ abstract class Morph(val form: String, val pos: String, val entry: Entry, var or
     null
   }
   
-  def getHwd = entry.hwd
+  def getHwd: String = entry.hwd
   
   def equalsTo(another: Morph): Boolean = this.form == another.form && this.pos == another.pos && this.entry == another.entry && this.originality == another.originality
   
-  override def toString = s"${entry.hwd}(${form})[${pos},${originality}][${entry.name}]"
+  override def toString = s"${entry.hwd}($form)[$pos,$originality][${entry.name}]"
 }
 
 class NounMorph(form: String, entry: Entry, val refPersonNumber: String, originality: String)
     extends Morph(form, POS.NOUN, entry, originality) {
-  val role = AspectValue.REG
-  var genre = AspectValue.SBSTH
+  val role: String = AspectValue.REG
+  var genre: String = AspectValue.SBSTH
   
   def createPhrases(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
@@ -36,21 +36,21 @@ class NounMorph(form: String, entry: Entry, val refPersonNumber: String, origina
           HeadConfigAnalyzer.getUnitNNPConfig(form, sense.hwd, sense, entryConfig)
         else
           null
-      if(sense.subsenses.size == 0) {
-        list ++= createForUnit(false, sense.hwd, sense.ruleDesc, sense, entryConfig, senseConfig, grams, bagOfHwds)
+      if(sense.subsenses.isEmpty) {
+        list ++= createForUnit(fromMWE = false, sense.hwd, sense.ruleDesc, sense, entryConfig, senseConfig, grams, bagOfHwds)
         sense.variants.foreach(variant => {
           if(variant.ruleDesc != null) {
-            list ++= createForUnit(false, variant.hwd, variant.ruleDesc, sense, entryConfig, null, grams, bagOfHwds)
+            list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, sense, entryConfig, null, grams, bagOfHwds)
           }
           else {
             if(variant.hwd == form) {
               val variantConfig = HeadConfigAnalyzer.getUnitNNPConfig(form, variant.hwd, sense, entryConfig)
-              list ++= createForUnit(false, variant.hwd, variant.ruleDesc, sense, entryConfig, variantConfig, grams, bagOfHwds)
+              list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, sense, entryConfig, variantConfig, grams, bagOfHwds)
             }
           }
         })
         sense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
         })
       }
       sense.subsenses.foreach(subsense => {
@@ -58,20 +58,20 @@ class NounMorph(form: String, entry: Entry, val refPersonNumber: String, origina
         grams ++= senseGrams
         grams ++= entryGrams
         grams ++= subsense.grams(subsense.hwd)
-        list ++= createForUnit(false, subsense.hwd, subsense.ruleDesc, subsense, entryConfig, senseConfig, grams, bagOfHwds)
+        list ++= createForUnit(fromMWE = false, subsense.hwd, subsense.ruleDesc, subsense, entryConfig, senseConfig, grams, bagOfHwds)
         subsense.variants.foreach(variant => {
           if(variant.ruleDesc != null) {
-            list ++= createForUnit(false, variant.hwd, variant.ruleDesc, subsense, entryConfig, null, grams, bagOfHwds)
+            list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, subsense, entryConfig, null, grams, bagOfHwds)
           }
           else {
             if(variant.hwd == form) {
               val variantConfig = HeadConfigAnalyzer.getUnitNNPConfig(form, variant.hwd, sense, entryConfig)
-              list ++= createForUnit(false, variant.hwd, variant.ruleDesc, subsense, entryConfig, variantConfig, grams, bagOfHwds)
+              list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, subsense, entryConfig, variantConfig, grams, bagOfHwds)
             }
           }
         })
         subsense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
         })
       })
     })
@@ -93,7 +93,7 @@ class NounMorph(form: String, entry: Entry, val refPersonNumber: String, origina
         grams ++= sense.grams(unit.hwd)
         grams ++= unit.grams(unit.hwd)
       }
-      list ++= createForUnit(true, form, null, unit, entryConfig, null, grams, bagOfHwds)
+      list ++= createForUnit(fromMWE = true, form, null, unit, entryConfig, null, grams, bagOfHwds)
     })
     list
   }
@@ -102,28 +102,27 @@ class NounMorph(form: String, entry: Entry, val refPersonNumber: String, origina
     val list = new mutable.MutableList[Phrase]
     // helpers
     def buildLexicalRuleDesc: String = {
-      var desc = s"LEX:*`${hwd}`->{NNP}"
+      var desc = s"LEX:*`$hwd`->{NNP}"
       grams.foreach(gram => {
         gram.key match {
-          case Grams.BEF => {
+          case Grams.BEF =>
             if(gram.degree == Grams.ALWAYS) {
               val values = gram.value.split("/")
               val befDescs = new mutable.MutableList[String]
               values.foreach(value => {
-                befDescs += s"LEX:*`${hwd}`$$A ${value}[PPP]$$B^A.POSTMOD+B->{NNP}"
+                befDescs += s"LEX:*`$hwd`$$A $value[PPP]$$B^A.POSTMOD+B->{NNP}"
               })
-              desc = s"${desc}|${befDescs.mkString("|")}"
+              desc = s"$desc|${befDescs.mkString("|")}"
             }
-          }
           case _ =>
         }
       })
       desc
     }
     
-//    println(s"${unit.index}: hwd=${hwd}, ruleDesc=${ruleDesc}, unitConfig=${unitConfig}, ${form}")
+//    println(s"${unit.index}: hwd=$hwd, ruleDesc=${ruleDesc}, unitConfig=${unitConfig}, $form")
     
-    if(fromMWE == false) {
+    if(!fromMWE) {
       if(ruleDesc != null) {
         val nnpHead = new NNPHead(entryConfig.form, entryConfig.originality)
         nnpHead.init(entryConfig, AspectValue.UNDEF)
@@ -172,7 +171,7 @@ class NounMorph(form: String, entry: Entry, val refPersonNumber: String, origina
     list
   }
   
-  override def equalsTo(another: Morph) = {
+  override def equalsTo(another: Morph): Boolean = {
     if(super.equalsTo(another)) {
       val anotherNounMorph = another.asInstanceOf[NounMorph]
       this.refPersonNumber == anotherNounMorph.refPersonNumber
@@ -181,16 +180,16 @@ class NounMorph(form: String, entry: Entry, val refPersonNumber: String, origina
       false
   }
   
-  override def toString = s"${entry.hwd}(${form})[${pos},${role},${refPersonNumber},${genre},${originality}][${entry.name}]"
+  override def toString = s"${entry.hwd}($form)[$pos,$role,$refPersonNumber,$genre,$originality][${entry.name}]"
 }
 
 class PronounMorph(form: String, entry: Entry, originality: String) 
     extends Morph(form, POS.PRONOUN, entry, originality){
-  var role = AspectValue.UNDEF
-  var genre = AspectValue.SBSTH
-  var personNumber = AspectValue.UNDEF
-  var qw = AspectValue.PLAIN
-  val grams = entry.grams(form)
+  var role: String = AspectValue.UNDEF
+  var genre: String = AspectValue.SBSTH
+  var personNumber: String = AspectValue.UNDEF
+  var qw: String = AspectValue.PLAIN
+  val grams: mutable.MutableList[Gram] = entry.grams(form)
   grams.foreach(gram => {
     if(gram.key == Grams.ASP) {
       if(AspectValue.ROLES.contains(gram.value))
@@ -208,16 +207,16 @@ class PronounMorph(form: String, entry: Entry, originality: String)
   def createPhrases(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     entry.senses.foreach(sense => {
-      if(sense.subsenses.size == 0) {
-        list ++= createForUnit(false, sense, originality, bagOfHwds)
+      if(sense.subsenses.isEmpty) {
+        list ++= createForUnit(fromMWE = false, sense, originality, bagOfHwds)
         sense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa, originality, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa, originality, bagOfHwds)
         })
       }
       sense.subsenses.foreach(subsense => {
-        list ++= createForUnit(false, subsense, originality, bagOfHwds)
+        list ++= createForUnit(fromMWE = false, subsense, originality, bagOfHwds)
         subsense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa, originality, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa, originality, bagOfHwds)
         })
       })
     })
@@ -242,7 +241,7 @@ class PronounMorph(form: String, entry: Entry, originality: String)
     list
   }
   
-  override def equalsTo(another: Morph) = {
+  override def equalsTo(another: Morph): Boolean = {
     if(super.equalsTo(another)) {
       val peer = another.asInstanceOf[PronounMorph]
       this.role == peer.role && this.personNumber == peer.personNumber && this.genre == peer.genre
@@ -251,7 +250,7 @@ class PronounMorph(form: String, entry: Entry, originality: String)
       false
   }
   
-  override def toString = s"${entry.hwd}(${form})[${pos},${role},${genre},${personNumber},${originality}][${entry.name}]"
+  override def toString = s"${entry.hwd}($form)[$pos,$role,$genre,$personNumber,$originality][${entry.name}]"
 }
 
 class VerbMorph(form: String, entry: Entry, val category: String, val isStem: String, val function: String, val tense: String, val personNumber: String, originality: String) 
@@ -281,21 +280,21 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
           HeadConfigAnalyzer.getUnitVBPConfig(form, sense.hwd, sense, entryConfig)
         else
           null
-      if(sense.subsenses.size == 0) {
-        list ++= createVBPPhraseForUnit(false, sense.hwd, sense.ruleDesc, sense, entryConfig, senseConfig, grams, bagOfHwds)
+      if(sense.subsenses.isEmpty) {
+        list ++= createVBPPhraseForUnit(fromMWE = false, sense.hwd, sense.ruleDesc, sense, entryConfig, senseConfig, grams, bagOfHwds)
         sense.variants.foreach(variant => {
           if(variant.ruleDesc != null) {
-            list ++= createVBPPhraseForUnit(false, variant.hwd, variant.ruleDesc, sense, entryConfig, null, grams, bagOfHwds)
+            list ++= createVBPPhraseForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, sense, entryConfig, null, grams, bagOfHwds)
           }
           else {
             if(variant.hwd == form) {
               val variantConfig = HeadConfigAnalyzer.getUnitVBPConfig(form, variant.hwd, sense, entryConfig)
-              list ++= createVBPPhraseForUnit(false, variant.hwd, variant.ruleDesc, sense, entryConfig, variantConfig, grams, bagOfHwds)
+              list ++= createVBPPhraseForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, sense, entryConfig, variantConfig, grams, bagOfHwds)
             }
           }
         })
         sense.exas.foreach(exa => {
-          list ++= createVBPPhraseForUnit(false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
+          list ++= createVBPPhraseForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
         })
       }
       sense.subsenses.foreach(subsense => {
@@ -303,20 +302,20 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
         grams ++= senseGrams
         grams ++= entryGrams
         grams ++= subsense.grams(subsense.hwd)
-        list ++= createVBPPhraseForUnit(false, subsense.hwd, subsense.ruleDesc, subsense, entryConfig, senseConfig, grams, bagOfHwds)
+        list ++= createVBPPhraseForUnit(fromMWE = false, subsense.hwd, subsense.ruleDesc, subsense, entryConfig, senseConfig, grams, bagOfHwds)
         subsense.variants.foreach(variant => {
           if(variant.ruleDesc != null) {
-            list ++= createVBPPhraseForUnit(false, variant.hwd, variant.ruleDesc, subsense, entryConfig, null, grams, bagOfHwds)
+            list ++= createVBPPhraseForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, subsense, entryConfig, null, grams, bagOfHwds)
           }
           else {
             if(variant.hwd == form) {
               val variantConfig = HeadConfigAnalyzer.getUnitVBPConfig(form, variant.hwd, sense, entryConfig)
-              list ++= createVBPPhraseForUnit(false, variant.hwd, variant.ruleDesc, subsense, entryConfig, variantConfig, grams, bagOfHwds)
+              list ++= createVBPPhraseForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, subsense, entryConfig, variantConfig, grams, bagOfHwds)
             }
           }
         })
         subsense.exas.foreach(exa => {
-          list ++= createVBPPhraseForUnit(false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
+          list ++= createVBPPhraseForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, entryConfig, senseConfig, grams, bagOfHwds)
         })
       })
     })
@@ -326,7 +325,7 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
   private def createVBMPhrase(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     entry.senses.foreach(sense => {
-      if(sense.subsenses.size == 0) {
+      if(sense.subsenses.isEmpty) {
         list ++= createVBMPhraseForUnit(sense.ruleDesc, sense, originality, bagOfHwds)
         sense.exas.foreach(exa => {
           list ++= createVBMPhraseForUnit(exa.ruleDesc, exa, originality, bagOfHwds)
@@ -345,7 +344,7 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
   private def createVBAPhrase(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     entry.senses.foreach(sense => {
-      if(sense.subsenses.size == 0) {
+      if(sense.subsenses.isEmpty) {
         list ++= createVBAPhraseForUnit(sense.ruleDesc, sense, originality, bagOfHwds)
         sense.exas.foreach(exa => {
           list ++= createVBAPhraseForUnit(exa.ruleDesc, sense, originality, bagOfHwds)
@@ -385,7 +384,7 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
         grams ++= sense.grams(unit.hwd)
         grams ++= unit.grams(unit.hwd)
       }
-      list ++= createVBPPhraseForUnit(true, null, null, unit, entryConfig, null, grams, bagOfHwds)
+      list ++= createVBPPhraseForUnit(fromMWE = true, null, null, unit, entryConfig, null, grams, bagOfHwds)
     })
     list
   }
@@ -398,12 +397,21 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
     list
   }
   
-  private def createVBPPhraseForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, entryConfig: VBPConfig, unitConfig: VBPConfig, grams: mutable.MutableList[Gram], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createVBPPhraseForUnit(
+                                      fromMWE: Boolean,
+                                      hwd: String,
+                                      ruleDesc: String,
+                                      unit: EntryUnit,
+                                      entryConfig: VBPConfig,
+                                      unitConfig: VBPConfig,
+                                      grams: mutable.MutableList[Gram],
+                                      bagOfHwds: mutable.HashSet[String])
+  : mutable.MutableList[Phrase] = {
     def buildLexicalRuleDesc(transitivity: String): String = {
-      var desc = {
+      val desc = {
         transitivity match {
-          case AspectValue.TRANS => s"LEX:*`${hwd}` {NNS}[OBL]$$A->{VBP}^VAR+A"
-          case AspectValue.INTRANS => s"LEX:*`${hwd}`->{VBP}"
+          case AspectValue.TRANS => s"LEX:*`$hwd` {NNS}[OBL]$$A->{VBP}^VAR+A"
+          case AspectValue.INTRANS => s"LEX:*`$hwd`->{VBP}"
         }
       }
       grams.foreach(gram => {
@@ -414,9 +422,9 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
       desc
     }
     val list = new mutable.MutableList[Phrase]
-//    println(s"${unit.index}: ${unit.lexUnit}, ${unit.grams(unit.hwd)}, ${senseConfig}, ${form}")
+//    println(s"${unit.index}: ${unit.lexUnit}, ${unit.grams(unit.hwd)}, ${senseConfig}, $form")
     
-    if(fromMWE == false) {
+    if(!fromMWE) {
       if(ruleDesc != null) {
         val vbpHead = new VBPHead(entryConfig.form, entryConfig.originality)
         vbpHead.init(entryConfig, AspectValue.UNDEF)
@@ -493,7 +501,7 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
     list
   }
   
-  override def equalsTo(another: Morph) = {
+  override def equalsTo(another: Morph): Boolean = {
     if(super.equalsTo(another)) {
       val peer = another.asInstanceOf[VerbMorph]
       this.category == peer.category && this.isStem == peer.isStem && this.function == peer.function && this.tense == peer.tense && this.personNumber == peer.personNumber
@@ -502,7 +510,7 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
       false
   }
   
-  override def toString = s"${entry.hwd}(${form})[${pos},${category},${isStem},${function},${tense},${personNumber},${originality}][${entry.name}]"
+  override def toString = s"${entry.hwd}($form)[$pos,$category,$isStem,$function,$tense,$personNumber,$originality][${entry.name}]"
 }
 
 class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality: String)
@@ -516,13 +524,13 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
       val grams = new mutable.MutableList[Gram]
       grams ++= senseGrams
       grams ++= entryGrams
-      if(sense.subsenses.size == 0) {
-        list ++= createForUnit(false, sense.hwd, sense.ruleDesc, sense, grams, bagOfHwds)
+      if(sense.subsenses.isEmpty) {
+        list ++= createForUnit(fromMWE = false, sense.hwd, sense.ruleDesc, sense, grams, bagOfHwds)
         sense.variants.foreach(variant => {
-          list ++= createForUnit(false, variant.hwd, variant.ruleDesc, sense, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, sense, grams, bagOfHwds)
         })
         sense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
         })
       }
       sense.subsenses.foreach(subsense => {
@@ -530,12 +538,12 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
         grams ++= senseGrams
         grams ++= entryGrams
         grams ++= subsense.grams(subsense.hwd)
-        list ++= createForUnit(false, subsense.hwd, subsense.ruleDesc, subsense, grams, bagOfHwds)
+        list ++= createForUnit(fromMWE = false, subsense.hwd, subsense.ruleDesc, subsense, grams, bagOfHwds)
         subsense.variants.foreach(variant => {
-          list ++= createForUnit(false, variant.hwd, variant.ruleDesc, subsense, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, subsense, grams, bagOfHwds)
         })
         subsense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
         })
       })
     })
@@ -556,28 +564,26 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
         grams ++= sense.grams(unit.hwd)
         grams ++= unit.grams(unit.hwd)
       }
-      list ++= createForUnit(true, form, null, unit, grams, bagOfHwds)
+      list ++= createForUnit(fromMWE = true, form, null, unit, grams, bagOfHwds)
     })
     list
   }
   
   private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, grams: mutable.MutableList[Gram], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     def buildLexicalRuleDesc: String = {
-      var desc = s"LEX:*`${hwd}`->{AJE}|LEX:`${hwd}`$$A *{NNP}[NODT]->{NNP}^PREMOD+A"
+      var desc = s"LEX:*`$hwd`->{AJE}|LEX:`$hwd`$$A *{NNP}[NODT]->{NNP}^PREMOD+A"
       grams.foreach(gram => {
         gram.key match {
-          case Grams.BEF => {
+          case Grams.BEF =>
             gram.value match {
-              case Grams.NOUN => {
+              case Grams.NOUN =>
                 if(gram.degree == Grams.NOT)
-                  desc = s"LEX:*`${hwd}`->{AJE}|LEX:`${hwd}` *{NNP}[NODT]->{ERROR}"
+                  desc = s"LEX:*`$hwd`->{AJE}|LEX:`$hwd` *{NNP}[NODT]->{ERROR}"
                 else
 //                  desc = s"LEX:*`${entry.hwd}`->{AJE}|LEX:`${entry.hwd}`$$A *{NNP}[NOPREMOD,NODT]->{NNP}^PREMOD+A"
-                  desc = s"LEX:*`${hwd}`->{AJE}|LEX:`${hwd}`$$A *{NNP}[NODT]->{NNP}^PREMOD+A"
-              }
+                  desc = s"LEX:*`$hwd`->{AJE}|LEX:`$hwd`$$A *{NNP}[NODT]->{NNP}^PREMOD+A"
               case _ =>
             }
-          }
           case _ =>
         }
       })
@@ -587,17 +593,17 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
     val list = new mutable.MutableList[Phrase]
     val head = new AJEHead(entry.hwd, originality)
     head.init(degree)
-    if(fromMWE == false) {
+    if(!fromMWE) {
       if(ruleDesc != null) {
         RuleParser.parse(ruleDesc).foreach(rule => {
           val phrase = PhraseFactory.create(rule)
-          if(phrase.isInstanceOf[MWEPhrase]) {
-            if(phrase.asInstanceOf[MWEPhrase].init(hwd, entry, unit, head, bagOfHwds))
-              list += phrase
-          }
-          else {
-            if(phrase.init(unit, head, bagOfHwds))
-              list += phrase
+          phrase match {
+            case mwePhrase: MWEPhrase =>
+              if (mwePhrase.init(hwd, entry, unit, head, bagOfHwds))
+                list += phrase
+            case _ =>
+              if (phrase.init(unit, head, bagOfHwds))
+                list += phrase
           }
         })
       }
@@ -621,7 +627,7 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
     list
   }
   
-  override def equalsTo(another: Morph) = {
+  override def equalsTo(another: Morph): Boolean = {
     if(super.equalsTo(another)) {
       val peer = another.asInstanceOf[AdjectiveMorph]
       this.degree == peer.degree
@@ -630,7 +636,7 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
       false
   }
   
-  override def toString = s"${entry.hwd}(${form})[${pos},${degree},${originality}][${entry.name}]"
+  override def toString = s"${entry.hwd}($form)[$pos,$degree,$originality][${entry.name}]"
 }
 
 class AdverbMorph(form: String, entry: Entry, val degree: String, originality: String)
@@ -644,13 +650,13 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
       val grams = new mutable.MutableList[Gram]
       grams ++= senseGrams
       grams ++= entryGrams
-      if(sense.subsenses.size == 0) {
-        list ++= createForUnit(false, sense.hwd, sense.ruleDesc, sense, grams, bagOfHwds)
+      if(sense.subsenses.isEmpty) {
+        list ++= createForUnit(fromMWE = false, sense.hwd, sense.ruleDesc, sense, grams, bagOfHwds)
         sense.variants.foreach(variant => {
-          list ++= createForUnit(false, variant.hwd, variant.ruleDesc, sense, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, sense, grams, bagOfHwds)
         })
         sense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
         })
       }
       sense.subsenses.foreach(subsense => {
@@ -658,12 +664,12 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
         grams ++= senseGrams
         grams ++= entryGrams
         grams ++= subsense.grams(subsense.hwd)
-        list ++= createForUnit(false, subsense.hwd, subsense.ruleDesc, subsense, grams, bagOfHwds)
+        list ++= createForUnit(fromMWE = false, subsense.hwd, subsense.ruleDesc, subsense, grams, bagOfHwds)
         subsense.variants.foreach(variant => {
-          list ++= createForUnit(false, variant.hwd, variant.ruleDesc, subsense, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, variant.hwd, variant.ruleDesc, subsense, grams, bagOfHwds)
         })
         subsense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, grams, bagOfHwds)
         })
       })
     })
@@ -684,23 +690,22 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
         grams ++= sense.grams(unit.hwd)
         grams ++= unit.grams(unit.hwd)
       }
-      list ++= createForUnit(true, form, null, unit, grams, bagOfHwds)
+      list ++= createForUnit(fromMWE = true, form, null, unit, grams, bagOfHwds)
     })
     list
   }
   
   private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, grams: mutable.MutableList[Gram], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {    
     def buildLexicalRuleDesc: String = {
-      var desc = s"LEX:*`${hwd}`->{AVE}|LEX:`${hwd}`$$A *{AJE}->{AJE}^PREMOD+A|LEX:`${hwd}`$$A *{AVE}->{AVE}^PREMOD+A"
+      var desc = s"LEX:*`$hwd`->{AVE}|LEX:`$hwd`$$A *{AJE}->{AJE}^PREMOD+A|LEX:`$hwd`$$A *{AVE}->{AVE}^PREMOD+A"
       grams.foreach(gram => {
         gram.key match {
-          case Grams.BEF => {
+          case Grams.BEF =>
             gram.value match {
-              case Grams.ADJ_ADV => desc = s"LEX:*`${hwd}`->{AVE}|LEX:`${hwd}`$$A *{AJE}[NOPREMOD]->{AJE}^PREMOD+A|LEX:`${hwd}`$$A *{AVE}[NOPREMOD]->{AVE}^PREMOD+A"
-              case Grams.ADJ => desc = s"LEX:*`${hwd}`->{AVE}|LEX:`${hwd}`$$A *{AJE}[NOPREMOD]->{AJE}^PREMOD+A"
+              case Grams.ADJ_ADV => desc = s"LEX:*`$hwd`->{AVE}|LEX:`$hwd`$$A *{AJE}[NOPREMOD]->{AJE}^PREMOD+A|LEX:`$hwd`$$A *{AVE}[NOPREMOD]->{AVE}^PREMOD+A"
+              case Grams.ADJ => desc = s"LEX:*`$hwd`->{AVE}|LEX:`$hwd`$$A *{AJE}[NOPREMOD]->{AJE}^PREMOD+A"
               case _ =>
             }
-          }
           case _ =>
         }
       })
@@ -710,17 +715,17 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
     val list = new mutable.MutableList[Phrase]
     val head = new AVEHead(entry.hwd, originality)
     head.init(degree)
-    if(fromMWE == false) {
+    if(!fromMWE) {
       if(ruleDesc != null) {
         RuleParser.parse(ruleDesc).foreach(rule => {
           val phrase = PhraseFactory.create(rule)
-          if(phrase.isInstanceOf[MWEPhrase]) {
-            if(phrase.asInstanceOf[MWEPhrase].init(hwd, entry, unit, head, bagOfHwds))
-              list += phrase
-          }
-          else {
-            if(phrase.init(unit, head, bagOfHwds))
-              list += phrase
+          phrase match {
+            case mwePhrase: MWEPhrase =>
+              if (mwePhrase.init(hwd, entry, unit, head, bagOfHwds))
+                list += phrase
+            case _ =>
+              if (phrase.init(unit, head, bagOfHwds))
+                list += phrase
           }
         })
       }
@@ -744,7 +749,7 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
     list
   }
   
-  override def equalsTo(another: Morph) = {
+  override def equalsTo(another: Morph): Boolean = {
     if(super.equalsTo(another)) {
       val peer = another.asInstanceOf[AdverbMorph]
       this.degree == peer.degree
@@ -753,7 +758,7 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
       false
   }
   
-  override def toString = s"${entry.hwd}(${form})[${pos},${degree},${originality}][${entry.name}]"
+  override def toString = s"${entry.hwd}($form)[$pos,$degree,$originality][${entry.name}]"
 }
 
 class PrepositionMorph(form: String, entry: Entry, originality: String) 
@@ -761,16 +766,16 @@ class PrepositionMorph(form: String, entry: Entry, originality: String)
   def createPhrases(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     entry.senses.foreach(sense => {
-      if(sense.subsenses.size == 0) {
-        list ++= createForUnit(false, sense.hwd, sense.ruleDesc, sense, originality, bagOfHwds)
+      if(sense.subsenses.isEmpty) {
+        list ++= createForUnit(fromMWE = false, sense.hwd, sense.ruleDesc, sense, originality, bagOfHwds)
         sense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, originality, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, originality, bagOfHwds)
         })
       }
       sense.subsenses.foreach(subsense => {
-        list ++= createForUnit(false, subsense.hwd, subsense.ruleDesc, subsense, originality, bagOfHwds)
+        list ++= createForUnit(fromMWE = false, subsense.hwd, subsense.ruleDesc, subsense, originality, bagOfHwds)
         subsense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, originality, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, originality, bagOfHwds)
         })
       })
     })
@@ -779,12 +784,12 @@ class PrepositionMorph(form: String, entry: Entry, originality: String)
   
   private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, originality: String, bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     def buildLexicalRuleDesc: String = {
-      s"LEX:*`${hwd}` {NNS}$$A->{PPP}^VAR+A"
+      s"LEX:*`$hwd` {NNS}$$A->{PPP}^VAR+A"
     }
     
     val list = new mutable.MutableList[Phrase]
     val head = new PPPHead(entry.hwd, originality)
-    if(fromMWE == false) {
+    if(!fromMWE) {
       if(ruleDesc != null) {
         RuleParser.parse(ruleDesc).foreach(rule => {
           val phrase = PhraseFactory.create(rule)
@@ -821,8 +826,8 @@ class PrepositionMorph(form: String, entry: Entry, originality: String)
 
 class CommonMorph(form: String, pos: String, entry: Entry, originality: String)
     extends Morph(form, pos, entry, originality) {
-  var qw = AspectValue.PLAIN
-  val grams = entry.grams(form)
+  var qw: String = AspectValue.PLAIN
+  val grams: mutable.MutableList[Gram] = entry.grams(form)
   grams.foreach(gram => {
     if(gram.key == Grams.QWT) {
       qw = gram.value
@@ -831,16 +836,16 @@ class CommonMorph(form: String, pos: String, entry: Entry, originality: String)
   def createPhrases(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     entry.senses.foreach(sense => {
-      if(sense.subsenses.size == 0) {
-        list ++= createForUnit(false, sense.hwd, sense.ruleDesc, sense, pos, originality, bagOfHwds)
+      if(sense.subsenses.isEmpty) {
+        list ++= createForUnit(fromMWE = false, sense.hwd, sense.ruleDesc, sense, pos, originality, bagOfHwds)
         sense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, pos, originality, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, pos, originality, bagOfHwds)
         })
       }
       sense.subsenses.foreach(subsense => {
-        list ++= createForUnit(false, subsense.hwd, subsense.ruleDesc, subsense, pos, originality, bagOfHwds)
+        list ++= createForUnit(fromMWE = false, subsense.hwd, subsense.ruleDesc, subsense, pos, originality, bagOfHwds)
         subsense.exas.foreach(exa => {
-          list ++= createForUnit(false, exa.hwd, exa.ruleDesc, exa, pos, originality, bagOfHwds)
+          list ++= createForUnit(fromMWE = false, exa.hwd, exa.ruleDesc, exa, pos, originality, bagOfHwds)
         })
       })
     })
@@ -865,7 +870,7 @@ class CommonMorph(form: String, pos: String, entry: Entry, originality: String)
 
 class MWEMorph(firstWord: String, entry: Entry, originality: String)
   extends Morph(firstWord, POS.MWE, entry, originality) {
-  override def getHwd = firstWord
+  override def getHwd: String = firstWord
   
   def createPhrases(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
@@ -885,5 +890,5 @@ class UnregisteredMorph(form: String) extends Morph(form, POS.UNREGISTERED, null
     new mutable.MutableList[Phrase]
   }
   
-  override def toString = s"${form}[${pos}]"
+  override def toString = s"$form[$pos]"
 }

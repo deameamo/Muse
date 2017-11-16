@@ -236,7 +236,9 @@ class Head(val form: String, val typo: String, val originality: String) {
     peer
   }
 
-  def performDeepCopy(another: Head, peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]) {
+  def performDeepCopy(another: Head,
+                      peerHeadMap: mutable.HashMap[String, Head],
+                      peerPhraseMap: mutable.HashMap[Int, Phrase]): Unit = {
     def getPeerPhrase(source: Phrase): Phrase = {
       if (!peerPhraseMap.contains(source.id)) {
         peerPhraseMap.put(source.id, source.shallowCopy)
@@ -355,7 +357,8 @@ class Head(val form: String, val typo: String, val originality: String) {
   }
 
   // operations ===============================================================
-  def performOperationsInComplexHead(operations: mutable.MutableList[Operation], headMap: mutable.HashMap[String, Head]) {
+  def performOperationsInComplexHead(operations: mutable.MutableList[Operation],
+                                     headMap: mutable.HashMap[String, Head]): Unit = {
     operations.foreach(operation => {
       operation.operator match {
         case Operator.SET => set(operation.operands, headMap)
@@ -369,7 +372,7 @@ class Head(val form: String, val typo: String, val originality: String) {
     onOperationsPerformed()
   }
 
-  private def addInComplexHead(operands: mutable.MutableList[String], headMap: mutable.HashMap[String, Head]) {
+  private def addInComplexHead(operands: mutable.MutableList[String], headMap: mutable.HashMap[String, Head]): Unit = {
     // A.list_name+head_id
     if (operands.size == 3) {
       if (headMap.contains(operands.head) && headMap.contains(operands.apply(2)))
@@ -516,13 +519,28 @@ class Head(val form: String, val typo: String, val originality: String) {
     val perNumB = b.get(AspectName.PERSON_NUMBER)
     if (perNumA != null && perNumB != null) {
       perNumA match {
-        case AspectValue.P1SING => if (perNumB != AspectValue.P1SING && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL) quality += Rule.ERR_PT
-        case AspectValue.P1PL => if (perNumB != AspectValue.P1PL && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL) quality += Rule.ERR_PT
-        case AspectValue.P2 => if (perNumB != AspectValue.P2 && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL) quality += Rule.ERR_PT
-        case AspectValue.P3SING => if (perNumB != AspectValue.P3SING && perNumB != AspectValue.ALL) quality += Rule.ERR_PT
-        case AspectValue.P3PL => if (perNumB != AspectValue.P3PL && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL) quality += Rule.ERR_PT
-        case AspectValue.P3BI => if (perNumB != AspectValue.P3SING && perNumB != AspectValue.P3PL && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL) quality += Rule.ERR_PT
-        case AspectValue.COMMON => if (perNumB == AspectValue.P3SING) quality -= Rule.MIS_PT
+        case AspectValue.P1SING =>
+          if (perNumB != AspectValue.P1SING && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL)
+            quality += Rule.ERR_PT
+        case AspectValue.P1PL =>
+          if (perNumB != AspectValue.P1PL && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL)
+            quality += Rule.ERR_PT
+        case AspectValue.P2 =>
+          if (perNumB != AspectValue.P2 && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL)
+            quality += Rule.ERR_PT
+        case AspectValue.P3SING =>
+          if (perNumB != AspectValue.P3SING && perNumB != AspectValue.ALL)
+            quality += Rule.ERR_PT
+        case AspectValue.P3PL =>
+          if (perNumB != AspectValue.P3PL && perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL)
+            quality += Rule.ERR_PT
+        case AspectValue.P3BI =>
+          if (perNumB != AspectValue.P3SING && perNumB != AspectValue.P3PL &&
+            perNumB != AspectValue.COMMON && perNumB != AspectValue.ALL)
+            quality += Rule.ERR_PT
+        case AspectValue.COMMON =>
+          if (perNumB == AspectValue.P3SING)
+            quality -= Rule.MIS_PT
         case _ =>
       }
     }
@@ -685,8 +703,13 @@ class Head(val form: String, val typo: String, val originality: String) {
         if (equals) {
           val thisHead = pair._2
           val anotherHead = another.read(pair._1)
-          equals = thisHead.form == anotherHead.form && thisHead.typo == anotherHead.typo && thisHead.quality == anotherHead.quality &&
-            (if (thisHead.phrase != null && anotherHead.phrase != null) thisHead.phrase.rule.string == anotherHead.phrase.rule.string else true)
+          equals = thisHead.form == anotherHead.form &&
+            thisHead.typo == anotherHead.typo &&
+            thisHead.quality == anotherHead.quality &&
+            (if (thisHead.phrase != null && anotherHead.phrase != null)
+              thisHead.phrase.rule.string == anotherHead.phrase.rule.string
+            else
+              true)
         }
       })
     }
@@ -740,7 +763,9 @@ class NNPHead(form: String, originality: String) extends Head(form, Head.NNP, or
     assign(AspectName.PREDET, Head.NOPDHead)
   }
 
-  override def isPure: Boolean = super.isPure && read(AspectName.DET) == Head.NODTHead && read(AspectName.PREDET) == Head.NOPDHead
+  override def isPure: Boolean = {
+    super.isPure && read(AspectName.DET) == Head.NODTHead && read(AspectName.PREDET) == Head.NOPDHead
+  }
 
   override def shallowCopy(refPhrase: Phrase): NNPHead = {
     val peer = new NNPHead(this.form, this.originality)
@@ -749,7 +774,8 @@ class NNPHead(form: String, originality: String) extends Head(form, Head.NNP, or
     peer
   }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): NNPHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): NNPHead = {
     val peer = new NNPHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -810,7 +836,8 @@ class PNHead(form: String, originality: String) extends Head(form, Head.PN, orig
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): PNHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): PNHead = {
     val peer = new PNHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -852,7 +879,8 @@ class VBPHead(form: String, originality: String) extends Head(form, Head.VBP, or
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): VBPHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): VBPHead = {
     val peer = new VBPHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -928,7 +956,8 @@ class VBMHead(form: String, originality: String) extends Head(form, Head.VBM, or
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): VBMHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): VBMHead = {
     val peer = new VBMHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -960,7 +989,8 @@ class VBAHead(form: String, originality: String) extends Head(form, Head.VBA, or
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): VBAHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): VBAHead = {
     val peer = new VBAHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -985,7 +1015,8 @@ class AJEHead(form: String, originality: String) extends Head(form, Head.AJE, or
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): AJEHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): AJEHead = {
     val peer = new AJEHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1030,7 +1061,8 @@ class AVEHead(form: String, originality: String) extends Head(form, Head.AVE, or
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): AVEHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): AVEHead = {
     val peer = new AVEHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1069,7 +1101,8 @@ class PPPHead(form: String, originality: String) extends Head(form, Head.PPP, or
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): PPPHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): PPPHead = {
     val peer = new PPPHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1113,7 +1146,8 @@ class DECLHead(form: String, originality: String) extends Head(form, Head.DECL, 
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): DECLHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): DECLHead = {
     val peer = new DECLHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1166,7 +1200,8 @@ class INYNHead(form: String, originality: String) extends Head(form, Head.INYN, 
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): INYNHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): INYNHead = {
     val peer = new INYNHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1219,7 +1254,8 @@ class INWHHead(form: String, originality: String) extends Head(form, Head.INWH, 
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): INWHHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): INWHHead = {
     val peer = new INWHHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1275,7 +1311,8 @@ class CLAUSEHead(form: String, originality: String) extends Head(form, Head.CLAU
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): CLAUSEHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): CLAUSEHead = {
     val peer = new CLAUSEHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1338,7 +1375,8 @@ class CJPHead(form: String, originality: String) extends Head(form, Head.CJP, or
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): CJPHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): CJPHead = {
     val peer = new CJPHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer
@@ -1435,7 +1473,8 @@ class COMPHead(form: String, originality: String) extends Head(form, Head.COMP, 
   //    peer
   //  }
 
-  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head], peerPhraseMap: mutable.HashMap[Int, Phrase]): COMPHead = {
+  override def deepCopy(peerHeadMap: mutable.HashMap[String, Head],
+                        peerPhraseMap: mutable.HashMap[Int, Phrase]): COMPHead = {
     val peer = new COMPHead(this.form, this.originality)
     peer.performDeepCopy(this, peerHeadMap, peerPhraseMap)
     peer

@@ -106,12 +106,15 @@ class Entry(xmlEle: Element) {
 
   def isPos(pos: String): Boolean = {
     if (pos == POS.VERB)
-      posList.contains(POS.VERB) || posList.contains(POS.AUX) || posList.contains(POS.MODAL) || posList.contains(POS.PRESPART)
+      posList.contains(POS.VERB) || posList.contains(POS.AUX) ||
+        posList.contains(POS.MODAL) || posList.contains(POS.PRESPART)
     else
       posList.contains(pos)
   }
 
-  def grams(word: String): mutable.MutableList[Gram] = if (gramsMap.isDefinedAt(word)) gramsMap.apply(word) else EntryUnit.EMPTY_GRAMS
+  def grams(word: String): mutable.MutableList[Gram] = {
+    if (gramsMap.isDefinedAt(word)) gramsMap.apply(word) else EntryUnit.EMPTY_GRAMS
+  }
 
   def name = s"$hwd${if (homnum == 0) "" else s"_$homnum"}"
 
@@ -140,7 +143,9 @@ abstract class EntryUnit(val entry: Entry, val index: String) {
   val variants = new mutable.MutableList[Variant]
   val irregulars = new mutable.MutableList[Irregular]
 
-  def grams(word: String): mutable.MutableList[Gram] = if (gramsMap.isDefinedAt(word)) gramsMap.apply(word) else EntryUnit.EMPTY_GRAMS
+  def grams(word: String): mutable.MutableList[Gram] = {
+    if (gramsMap.isDefinedAt(word)) gramsMap.apply(word) else EntryUnit.EMPTY_GRAMS
+  }
 
   override def toString = s"${entry.name}->$index"
 }
@@ -184,7 +189,9 @@ object EntryUnit {
 
   var targetPOS: String = _
 
-  def collectEntryGram(gramsMap: mutable.HashMap[String, mutable.MutableList[Gram]], posList: mutable.MutableList[String], entry: Entry) {
+  def collectEntryGram(gramsMap: mutable.HashMap[String, mutable.MutableList[Gram]],
+                       posList: mutable.MutableList[String],
+                       entry: Entry): Unit = {
     if (posList.contains(targetPOS)) {
       gramsMap.values.foreach(list => {
         list.foreach(gram => {
@@ -194,7 +201,9 @@ object EntryUnit {
     }
   }
 
-  def collectUnitGram(gramsMap: mutable.HashMap[String, mutable.MutableList[Gram]], posList: mutable.MutableList[String], unit: EntryUnit) {
+  def collectUnitGram(gramsMap: mutable.HashMap[String, mutable.MutableList[Gram]],
+                      posList: mutable.MutableList[String],
+                      unit: EntryUnit): Unit = {
     if (posList.contains(targetPOS)) {
       if (unit.lexUnit == null || unit.lexUnit == unit.entry.hwd) {
         gramsMap.values.foreach(list => {
@@ -259,7 +268,8 @@ class Sense(htmlEle: Element, entry: Entry, index: String) extends EntryUnit(ent
           child.getTextContent.split('|').foreach(gramsMap.apply(currVariant.hwd) += Gram(_))
         }
       case "example" => examples += child.getTextContent
-      case "subsense" => subsenses += new Subsense(child.asInstanceOf[Element], entry, s"$index->subsense_${subsenses.size}", this)
+      case "subsense" =>
+        subsenses += new Subsense(child.asInstanceOf[Element], entry, s"$index->subsense_${subsenses.size}", this)
       case "inflection" =>
         for (infIter <- 0 until child.getChildNodes.getLength) {
           val infItem = child.getChildNodes.item(infIter)

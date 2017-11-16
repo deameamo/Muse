@@ -38,7 +38,8 @@ class RuleLexical extends Scanners with RegexParsers with RuleTokens {
 
   val literal: Parser[String] = """[\p{javaUnicodeIdentifierPart}']+""".r
 
-  val symbols = List("{", "}", "[", "]", "<", ">", "(=", "=)", "(*", "*)", "(~", "~)", "(", ")", "->", "`", "*", "$", "+", "^", "@", "=", "~", ">", ".", ",", "/", "|", ":", "#", "%")
+  val symbols = List("{", "}", "[", "]", "<", ">", "(=", "=)", "(*", "*)", "(~", "~)", "(", ")", "->",
+    "`", "*", "$", "+", "^", "@", "=", "~", ">", ".", ",", "/", "|", ":", "#", "%")
 
   val symbolRegex: Regex = symbols.map(Pattern.quote).mkString("|").r
 

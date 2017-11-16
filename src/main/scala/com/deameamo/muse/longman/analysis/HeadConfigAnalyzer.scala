@@ -12,7 +12,9 @@ object HeadConfigAnalyzer {
           config.countability += AspectValue.CNT
         else if (gram.key == Grams.CAT && gram.value == Grams.UNCOUNTABLE)
           config.countability += AspectValue.UNCNT
-        else if (gram.key == Grams.INF && (gram.value == Grams.PLURAL || gram.value == Grams.SINGULAR) && gram.degree == Grams.ALWAYS)
+        else if (gram.key == Grams.INF &&
+          (gram.value == Grams.PLURAL || gram.value == Grams.SINGULAR) &&
+          gram.degree == Grams.ALWAYS)
           config.countability += AspectValue.CNT
       })
       if (config.countability.isEmpty) {
@@ -76,7 +78,9 @@ object HeadConfigAnalyzer {
           config.countability += AspectValue.CNT
         else if (gram.key == Grams.CAT && gram.value == Grams.UNCOUNTABLE)
           config.countability += AspectValue.UNCNT
-        else if (gram.key == Grams.INF && (gram.value == Grams.PLURAL || gram.value == Grams.SINGULAR) && gram.degree == Grams.ALWAYS)
+        else if (gram.key == Grams.INF &&
+          (gram.value == Grams.PLURAL || gram.value == Grams.SINGULAR) &&
+          gram.degree == Grams.ALWAYS)
           config.countability += AspectValue.CNT
         else if (gram.key == Grams.INF && gram.value == Grams.BIPOLAR && gram.degree == Grams.ALWAYS) {
           config.countability += AspectValue.CNT
@@ -135,7 +139,13 @@ object HeadConfigAnalyzer {
     }
   }
 
-  def getEntryVBPConfig(form: String, entry: Entry, isStem: String, function: String, tense: String, personNumber: String, originality: String): VBPConfig = {
+  def getEntryVBPConfig(form: String,
+                        entry: Entry,
+                        isStem: String,
+                        function: String,
+                        tense: String,
+                        personNumber: String,
+                        originality: String): VBPConfig = {
     val config = VBPConfig(entry.hwd, isStem, function, tense, personNumber, originality)
     val grams = {
       val hwdGram = entry.grams(entry.hwd)
@@ -155,7 +165,8 @@ object HeadConfigAnalyzer {
   }
 
   def getUnitVBPConfig(form: String, hwd: String, unit: EntryUnit, entryConfig: VBPConfig): VBPConfig = {
-    val config = VBPConfig(hwd, entryConfig.isStem, entryConfig.function, entryConfig.tense, entryConfig.personNumber, entryConfig.originality)
+    val config = VBPConfig(hwd, entryConfig.isStem, entryConfig.function,
+      entryConfig.tense, entryConfig.personNumber, entryConfig.originality)
     val grams = {
       val hwdGram = unit.grams(unit.hwd)
       if (hwdGram.nonEmpty) hwdGram else unit.grams(form)
@@ -197,10 +208,16 @@ case class NNPConfig(var form: String, var personNumber: String, originality: St
 
   def removeUncountable(): Boolean = countability.remove(AspectValue.UNCNT)
 
-  override def toString = s"NNPConfig: $form[${countability.mkString("[", ",", "]")},$personNumber,$originality,${if (errors.isEmpty) "NO_ERROR" else errors.mkString(",")}]"
+  override def toString: String = s"NNPConfig: $form[${countability.mkString("[", ",", "]")}," +
+    s"$personNumber,$originality,${if (errors.isEmpty) "NO_ERROR" else errors.mkString(",")}]"
 }
 
-case class VBPConfig(var form: String, isStem: String, function: String, tense: String, personNumber: String, originality: String) {
+case class VBPConfig(var form: String,
+                     isStem: String,
+                     function: String,
+                     tense: String,
+                     personNumber: String,
+                     originality: String) {
   val transitivity = new mutable.HashSet[String]
   val voice: String = if (function == AspectValue.PREDICATE) AspectValue.ACT else AspectValue.UNDEF
   val positivity: Head = if (function == AspectValue.PREDICATE) Head.POSHead else Head.UNDEFHead
@@ -210,10 +227,16 @@ case class VBPConfig(var form: String, isStem: String, function: String, tense: 
 
   def isIntransitive: Boolean = transitivity.contains(AspectValue.INTRANS)
 
-  override def toString = s"VBPConfig: $form[$isStem,$function,$tense,$personNumber,${transitivity.mkString("[", ",", "]")},$originality]"
+  override def toString: String = s"VBPConfig: $form[$isStem,$function,$tense,$personNumber," +
+    s"${transitivity.mkString("[", ",", "]")},$originality]"
 }
 
-case class VBAConfig(var form: String, isStem: String, function: String, tense: String, personNumber: String, originality: String) {
+case class VBAConfig(var form: String,
+                     isStem: String,
+                     function: String,
+                     tense: String,
+                     personNumber: String,
+                     originality: String) {
   val positivity: String = if (function == AspectValue.PREDICATE) AspectValue.POS else AspectValue.UNDEF
   val continuance: String = if (function == AspectValue.PREDICATE) AspectValue.GEN else AspectValue.UNDEF
 

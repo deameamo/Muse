@@ -11,7 +11,10 @@ abstract class Morph(val form: String, val pos: String, val entry: Entry, var or
   
   def getHwd: String = entry.hwd
   
-  def equalsTo(another: Morph): Boolean = this.form == another.form && this.pos == another.pos && this.entry == another.entry && this.originality == another.originality
+  def equalsTo(another: Morph): Boolean = {
+    this.form == another.form && this.pos == another.pos &&
+      this.entry == another.entry && this.originality == another.originality
+  }
   
   override def toString = s"${entry.hwd}($form)[$pos,$originality][${entry.name}]"
 }
@@ -98,7 +101,14 @@ class NounMorph(form: String, entry: Entry, val refPersonNumber: String, origina
     list
   }
   
-  private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, entryConfig: NNPConfig, unitConfig: NNPConfig, grams: mutable.MutableList[Gram], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createForUnit(fromMWE: Boolean,
+                            hwd: String,
+                            ruleDesc: String,
+                            unit: EntryUnit,
+                            entryConfig: NNPConfig,
+                            unitConfig: NNPConfig,
+                            grams: mutable.MutableList[Gram],
+                            bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     // helpers
     def buildLexicalRuleDesc: String = {
@@ -223,7 +233,10 @@ class PronounMorph(form: String, entry: Entry, originality: String)
     list
   }
   
-  private def createForUnit(fromMWE: Boolean, unit: EntryUnit, originality: String, bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createForUnit(fromMWE: Boolean,
+                            unit: EntryUnit,
+                            originality: String,
+                            bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     val specDesc = {
       if(unit.ruleDesc != null)
@@ -253,7 +266,14 @@ class PronounMorph(form: String, entry: Entry, originality: String)
   override def toString = s"${entry.hwd}($form)[$pos,$role,$genre,$personNumber,$originality][${entry.name}]"
 }
 
-class VerbMorph(form: String, entry: Entry, val category: String, val isStem: String, val function: String, val tense: String, val personNumber: String, originality: String) 
+class VerbMorph(form: String,
+                entry: Entry,
+                val category: String,
+                val isStem: String,
+                val function: String,
+                val tense: String,
+                val personNumber: String,
+                originality: String)
     extends Morph(form, POS.VERB, entry, originality){
   
   def createPhrases(bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
@@ -474,7 +494,10 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
     list
   }
   
-  private def createVBMPhraseForUnit(ruleDesc: String, unit: EntryUnit, originality: String, bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createVBMPhraseForUnit(ruleDesc: String,
+                                     unit: EntryUnit,
+                                     originality: String,
+                                     bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     val head = new VBMHead(entry.hwd, originality)
     if(ruleDesc != null) {
@@ -487,7 +510,10 @@ class VerbMorph(form: String, entry: Entry, val category: String, val isStem: St
     list
   }
   
-  private def createVBAPhraseForUnit(ruleDesc: String, unit: EntryUnit, originality: String, bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createVBAPhraseForUnit(ruleDesc: String,
+                                     unit: EntryUnit,
+                                     originality: String,
+                                     bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     val head = new VBAHead(entry.hwd, originality)
     head.init(isStem, function, tense, personNumber)
@@ -550,7 +576,8 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
     list
   }
   
-  override def createPhrasesForUnits(units: mutable.HashSet[EntryUnit], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  override def createPhrasesForUnits(units: mutable.HashSet[EntryUnit],
+                                     bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     val entryGrams = entry.grams(entry.hwd)
     units.foreach(unit => {
@@ -569,7 +596,12 @@ class AdjectiveMorph(form: String, entry: Entry, val degree: String, originality
     list
   }
   
-  private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, grams: mutable.MutableList[Gram], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createForUnit(fromMWE: Boolean,
+                            hwd: String,
+                            ruleDesc: String,
+                            unit: EntryUnit,
+                            grams: mutable.MutableList[Gram],
+                            bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     def buildLexicalRuleDesc: String = {
       var desc = s"LEX:*`$hwd`->{AJE}|LEX:`$hwd`$$A *{NNP}[NODT]->{NNP}^PREMOD+A"
       grams.foreach(gram => {
@@ -676,7 +708,8 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
     list
   }
   
-  override def createPhrasesForUnits(units: mutable.HashSet[EntryUnit], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  override def createPhrasesForUnits(units: mutable.HashSet[EntryUnit],
+                                     bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     val entryGrams = entry.grams(entry.hwd)
     units.foreach(unit => {
@@ -695,7 +728,12 @@ class AdverbMorph(form: String, entry: Entry, val degree: String, originality: S
     list
   }
   
-  private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, grams: mutable.MutableList[Gram], bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {    
+  private def createForUnit(fromMWE: Boolean,
+                            hwd: String,
+                            ruleDesc: String,
+                            unit: EntryUnit,
+                            grams: mutable.MutableList[Gram],
+                            bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     def buildLexicalRuleDesc: String = {
       var desc = s"LEX:*`$hwd`->{AVE}|LEX:`$hwd`$$A *{AJE}->{AJE}^PREMOD+A|LEX:`$hwd`$$A *{AVE}->{AVE}^PREMOD+A"
       grams.foreach(gram => {
@@ -782,7 +820,12 @@ class PrepositionMorph(form: String, entry: Entry, originality: String)
     list
   }
   
-  private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, originality: String, bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createForUnit(fromMWE: Boolean,
+                            hwd: String,
+                            ruleDesc: String,
+                            unit: EntryUnit,
+                            originality: String,
+                            bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     def buildLexicalRuleDesc: String = {
       s"LEX:*`$hwd` {NNS}$$A->{PPP}^VAR+A"
     }
@@ -852,7 +895,13 @@ class CommonMorph(form: String, pos: String, entry: Entry, originality: String)
     list
   }
   
-  private def createForUnit(fromMWE: Boolean, hwd: String, ruleDesc: String, unit: EntryUnit, typo: String, originality: String, bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
+  private def createForUnit(fromMWE: Boolean,
+                            hwd: String,
+                            ruleDesc: String,
+                            unit: EntryUnit,
+                            typo: String,
+                            originality: String,
+                            bagOfHwds: mutable.HashSet[String]): mutable.MutableList[Phrase] = {
     val list = new mutable.MutableList[Phrase]
     val head = new Head(entry.hwd, typo, originality)
     head.set(AspectName.QW_TYPE, qw)

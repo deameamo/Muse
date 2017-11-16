@@ -3,7 +3,6 @@ package com.deameamo.muse.longman.analysis
 import com.deameamo.commons.util.FileUtil
 
 import scala.collection.mutable
-import scala.io.Source
 
 
 object POS {
@@ -69,7 +68,16 @@ object POS {
   val UNREGISTERED = "UR"
   val MWE = "MWE"
 
-  val COMMON = Array(PREPOSITION, CONJUNCTION, INDEFINITE, DEFINITE, DETERMINER, PREDETERMINER, INTERJECTION, TO, NUMBER)
+  val COMMON = Array(
+    PREPOSITION,
+    CONJUNCTION,
+    INDEFINITE,
+    DEFINITE,
+    DETERMINER,
+    PREDETERMINER,
+    INTERJECTION,
+    TO,
+    NUMBER)
 }
 
 object Letter {

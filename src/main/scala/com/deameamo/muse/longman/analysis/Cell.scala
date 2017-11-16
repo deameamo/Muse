@@ -178,7 +178,7 @@ class Cell {
       i += 1
     }
     if (target == null) {
-      incoming.updateInitHeadId
+      incoming.updateInitHeadId()
       phrases += incoming
       Phrase.count += 1
     }

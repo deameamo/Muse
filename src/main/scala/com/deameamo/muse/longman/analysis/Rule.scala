@@ -272,12 +272,16 @@ class Rule(val category: String, val body: mutable.MutableList[Spec], val produc
 
   def isHigherThan(another: Rule): Boolean = Rule.getPoint(this) > Rule.getPoint(another)
 
-  def equalsTo(another: Rule): Boolean = this.string == another.string && this.from == another.from && this.to == another.to && this.fittedVector.equals(another.fittedVector)
+  def equalsTo(another: Rule): Boolean = {
+    this.string == another.string && this.from == another.from &&
+      this.to == another.to && this.fittedVector.equals(another.fittedVector)
+  }
 
   override def toString = s"$category:${body.mkString(" ")}->$product[$from~$to] (${headIdVector.mkString(",")})"
 
   def createProductPhrase(corePhrase: Phrase): Phrase = {
-    if (product.typo == corePhrase.coreHead.typo || (corePhrase.coreHead.typo == Head.CJP) && (product.typo == corePhrase.coreHead.get(AspectName.VAR_TYPO))) {
+    if (product.typo == corePhrase.coreHead.typo ||
+      ((corePhrase.coreHead.typo == Head.CJP) && (product.typo == corePhrase.coreHead.get(AspectName.VAR_TYPO)))) {
       corePhrase
     }
     else {
